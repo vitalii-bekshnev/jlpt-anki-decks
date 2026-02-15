@@ -293,7 +293,7 @@ jobs:
         echo "Tiered decks:"
         find tiered_decks -type f -name "*.csv" | head -20
 
-    - name: Create modular archives
+    - name: Create grouped archives
       run: |
         VERSION="${{ steps.get_release.outputs.release_tag }}"
         DATE=$(date +%Y%m%d)
@@ -309,36 +309,28 @@ jobs:
         TEMP_DIR=$(mktemp -d)
         trap "rm -rf $TEMP_DIR" EXIT
         
-        # Create modular archives for General decks
+        # Create grouped archives for General decks (kanji + vocab per level)
         echo "Creating General deck archives..."
         
-        # Kanji decks by level
         for level in N5 N4 N3 N2 N1; do
-          if [ -f "anki_decks_general/kanji/jlpt_${level}_kanji.csv" ]; then
-            mkdir -p "$TEMP_DIR/jlpt-${level}-kanji-general"
-            cp "anki_decks_general/kanji/jlpt_${level}_kanji.csv" "$TEMP_DIR/jlpt-${level}-kanji-general/"
-            tar -czf "releases/jlpt-${level}-kanji-general-${VERSION}-${DATE}.tar.gz" -C "$TEMP_DIR" "jlpt-${level}-kanji-general" || { echo "ERROR: Failed to create tar archive for ${level} kanji"; exit 1; }
-            (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-${level}-kanji-general-${VERSION}-${DATE}.zip" "jlpt-${level}-kanji-general") || { echo "ERROR: Failed to create zip archive for ${level} kanji"; exit 1; }
-            rm -rf "$TEMP_DIR/jlpt-${level}-kanji-general"
+          HAS_KANJI=""
+          HAS_VOCAB=""
+          [ -f "anki_decks_general/kanji/jlpt_${level}_kanji.csv" ] && HAS_KANJI="1"
+          [ -f "anki_decks_general/vocabulary/jlpt_${level}_vocab_examples.csv" ] && HAS_VOCAB="1"
+          
+          if [ -n "$HAS_KANJI" ] || [ -n "$HAS_VOCAB" ]; then
+            mkdir -p "$TEMP_DIR/jlpt-${level}-general/kanji" "$TEMP_DIR/jlpt-${level}-general/vocabulary"
+            [ -n "$HAS_KANJI" ] && cp "anki_decks_general/kanji/jlpt_${level}_kanji.csv" "$TEMP_DIR/jlpt-${level}-general/kanji/"
+            [ -n "$HAS_VOCAB" ] && cp "anki_decks_general/vocabulary/jlpt_${level}_vocab_examples.csv" "$TEMP_DIR/jlpt-${level}-general/vocabulary/"
+            (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-${level}-general-${VERSION}-${DATE}.zip" "jlpt-${level}-general") || { echo "ERROR: Failed to create zip archive for ${level} general"; exit 1; }
+            rm -rf "$TEMP_DIR/jlpt-${level}-general"
           fi
         done
 
-        # Vocabulary decks by level
-        for level in N5 N4 N3 N2 N1; do
-          if [ -f "anki_decks_general/vocabulary/jlpt_${level}_vocab_examples.csv" ]; then
-            mkdir -p "$TEMP_DIR/jlpt-${level}-vocab-general"
-            cp "anki_decks_general/vocabulary/jlpt_${level}_vocab_examples.csv" "$TEMP_DIR/jlpt-${level}-vocab-general/"
-            tar -czf "releases/jlpt-${level}-vocab-general-${VERSION}-${DATE}.tar.gz" -C "$TEMP_DIR" "jlpt-${level}-vocab-general" || { echo "ERROR: Failed to create tar archive for ${level} vocab"; exit 1; }
-            (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-${level}-vocab-general-${VERSION}-${DATE}.zip" "jlpt-${level}-vocab-general") || { echo "ERROR: Failed to create zip archive for ${level} vocab"; exit 1; }
-            rm -rf "$TEMP_DIR/jlpt-${level}-vocab-general"
-          fi
-        done
-
-        # Kana-only and non-JLPT vocab
+        # Kana-only and non-JLPT vocab (keep as separate archives)
         if [ -f "anki_decks_general/vocabulary/jlpt_kana_only_vocab_examples.csv" ]; then
           mkdir -p "$TEMP_DIR/jlpt-kana-only-vocab-general"
           cp "anki_decks_general/vocabulary/jlpt_kana_only_vocab_examples.csv" "$TEMP_DIR/jlpt-kana-only-vocab-general/"
-          tar -czf "releases/jlpt-kana-only-vocab-general-${VERSION}-${DATE}.tar.gz" -C "$TEMP_DIR" "jlpt-kana-only-vocab-general" || { echo "ERROR: Failed to create tar archive for kana-only vocab"; exit 1; }
           (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-kana-only-vocab-general-${VERSION}-${DATE}.zip" "jlpt-kana-only-vocab-general") || { echo "ERROR: Failed to create zip archive for kana-only vocab"; exit 1; }
           rm -rf "$TEMP_DIR/jlpt-kana-only-vocab-general"
         fi
@@ -346,50 +338,36 @@ jobs:
         if [ -f "anki_decks_general/vocabulary/jlpt_non_jlpt_vocab_examples.csv" ]; then
           mkdir -p "$TEMP_DIR/jlpt-non-jlpt-vocab-general"
           cp "anki_decks_general/vocabulary/jlpt_non_jlpt_vocab_examples.csv" "$TEMP_DIR/jlpt-non-jlpt-vocab-general/"
-          tar -czf "releases/jlpt-non-jlpt-vocab-general-${VERSION}-${DATE}.tar.gz" -C "$TEMP_DIR" "jlpt-non-jlpt-vocab-general" || { echo "ERROR: Failed to create tar archive for non-JLPT vocab"; exit 1; }
           (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-non-jlpt-vocab-general-${VERSION}-${DATE}.zip" "jlpt-non-jlpt-vocab-general") || { echo "ERROR: Failed to create zip archive for non-JLPT vocab"; exit 1; }
           rm -rf "$TEMP_DIR/jlpt-non-jlpt-vocab-general"
         fi
 
-        # Create modular archives for Tiered decks
+        # Create grouped archives for Tiered decks (kanji + vocab per level)
         echo "Creating Tiered deck archives..."
         
         for level in N5 N4 N3 N2 N1; do
           if [ -d "tiered_decks/${level}" ]; then
-            # Kanji tiered decks
-            mkdir -p "$TEMP_DIR/jlpt-${level}-kanji-tiered"
+            mkdir -p "$TEMP_DIR/jlpt-${level}-tiered"
+            
             for tier in Tier_1 Tier_2 Tier_3 Tier_4; do
-              if [ -f "tiered_decks/${level}/${tier}/kanji.csv" ]; then
-                mkdir -p "$TEMP_DIR/jlpt-${level}-kanji-tiered/${tier}"
-                cp "tiered_decks/${level}/${tier}/kanji.csv" "$TEMP_DIR/jlpt-${level}-kanji-tiered/${tier}/"
+              if [ -f "tiered_decks/${level}/${tier}/kanji.csv" ] || [ -f "tiered_decks/${level}/${tier}/vocab.csv" ]; then
+                mkdir -p "$TEMP_DIR/jlpt-${level}-tiered/${tier}"
+                [ -f "tiered_decks/${level}/${tier}/kanji.csv" ] && cp "tiered_decks/${level}/${tier}/kanji.csv" "$TEMP_DIR/jlpt-${level}-tiered/${tier}/"
+                [ -f "tiered_decks/${level}/${tier}/vocab.csv" ] && cp "tiered_decks/${level}/${tier}/vocab.csv" "$TEMP_DIR/jlpt-${level}-tiered/${tier}/"
               fi
             done
-            if [ -n "$(ls -A "$TEMP_DIR/jlpt-${level}-kanji-tiered" 2>/dev/null)" ]; then
-              tar -czf "releases/jlpt-${level}-kanji-tiered-${VERSION}-${DATE}.tar.gz" -C "$TEMP_DIR" "jlpt-${level}-kanji-tiered" || { echo "ERROR: Failed to create tar archive for ${level} kanji tiered"; exit 1; }
-              (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-${level}-kanji-tiered-${VERSION}-${DATE}.zip" "jlpt-${level}-kanji-tiered") || { echo "ERROR: Failed to create zip archive for ${level} kanji tiered"; exit 1; }
+            
+            if [ -n "$(ls -A "$TEMP_DIR/jlpt-${level}-tiered" 2>/dev/null)" ]; then
+              (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-${level}-tiered-${VERSION}-${DATE}.zip" "jlpt-${level}-tiered") || { echo "ERROR: Failed to create zip archive for ${level} tiered"; exit 1; }
             fi
-            rm -rf "$TEMP_DIR/jlpt-${level}-kanji-tiered"
-
-            # Vocabulary tiered decks
-            mkdir -p "$TEMP_DIR/jlpt-${level}-vocab-tiered"
-            for tier in Tier_1 Tier_2 Tier_3 Tier_4; do
-              if [ -f "tiered_decks/${level}/${tier}/vocab.csv" ]; then
-                mkdir -p "$TEMP_DIR/jlpt-${level}-vocab-tiered/${tier}"
-                cp "tiered_decks/${level}/${tier}/vocab.csv" "$TEMP_DIR/jlpt-${level}-vocab-tiered/${tier}/"
-              fi
-            done
-            if [ -n "$(ls -A "$TEMP_DIR/jlpt-${level}-vocab-tiered" 2>/dev/null)" ]; then
-              tar -czf "releases/jlpt-${level}-vocab-tiered-${VERSION}-${DATE}.tar.gz" -C "$TEMP_DIR" "jlpt-${level}-vocab-tiered" || { echo "ERROR: Failed to create tar archive for ${level} vocab tiered"; exit 1; }
-              (cd "$TEMP_DIR" && zip -r "${GITHUB_WORKSPACE}/releases/jlpt-${level}-vocab-tiered-${VERSION}-${DATE}.zip" "jlpt-${level}-vocab-tiered") || { echo "ERROR: Failed to create zip archive for ${level} vocab tiered"; exit 1; }
-            fi
-            rm -rf "$TEMP_DIR/jlpt-${level}-vocab-tiered"
+            rm -rf "$TEMP_DIR/jlpt-${level}-tiered"
           fi
         done
 
         # Cleanup handled by trap
         
-        # Verify archives were created (avoid brace expansion issues)
-        ARCHIVE_COUNT=$(ls -1 releases/*.tar.gz releases/*.zip 2>/dev/null | wc -l)
+        # Verify archives were created
+        ARCHIVE_COUNT=$(ls -1 releases/*.zip 2>/dev/null | wc -l)
         if [ "$ARCHIVE_COUNT" -eq 0 ]; then
           echo "ERROR: No archives were created"
           exit 1
@@ -403,16 +381,6 @@ jobs:
       run: |
         echo "Verifying archive integrity..."
         FAILED=0
-        
-        for archive in releases/*.tar.gz; do
-          if [ -f "$archive" ]; then
-            echo "Testing: $archive"
-            if ! tar -tzf "$archive" > /dev/null 2>&1; then
-              echo "ERROR: $archive is corrupted"
-              FAILED=1
-            fi
-          fi
-        done
         
         for archive in releases/*.zip; do
           if [ -f "$archive" ]; then
@@ -445,30 +413,25 @@ jobs:
 
         This release includes modular Anki flashcard decks for JLPT (Japanese Language Proficiency Test) study. Download only what you need!
 
-        ## General Decks (by JLPT Level Only)
+        ## General Decks (by JLPT Level)
 
-        Simple organization with decks grouped by JLPT level (N5-N1).
+        Simple organization with decks grouped by JLPT level (N5-N1). Each archive contains both kanji and vocabulary decks for that level.
 
         ### Available General Decks
 
         | File | Contents |
         |------|----------|
-        | \`jlpt-N5-kanji-general-*\` | N5 Kanji with readings, meanings, and examples |
-        | \`jlpt-N5-vocab-general-*\` | N5 Vocabulary with example sentences |
-        | \`jlpt-N4-kanji-general-*\` | N4 Kanji with readings, meanings, and examples |
-        | \`jlpt-N4-vocab-general-*\` | N4 Vocabulary with example sentences |
-        | \`jlpt-N3-kanji-general-*\` | N3 Kanji with readings, meanings, and examples |
-        | \`jlpt-N3-vocab-general-*\` | N3 Vocabulary with example sentences |
-        | \`jlpt-N2-kanji-general-*\` | N2 Kanji with readings, meanings, and examples |
-        | \`jlpt-N2-vocab-general-*\` | N2 Vocabulary with example sentences |
-        | \`jlpt-N1-kanji-general-*\` | N1 Kanji with readings, meanings, and examples |
-        | \`jlpt-N1-vocab-general-*\` | N1 Vocabulary with example sentences |
+        | \`jlpt-N5-general-*\` | N5 Kanji + Vocabulary |
+        | \`jlpt-N4-general-*\` | N4 Kanji + Vocabulary |
+        | \`jlpt-N3-general-*\` | N3 Kanji + Vocabulary |
+        | \`jlpt-N2-general-*\` | N2 Kanji + Vocabulary |
+        | \`jlpt-N1-general-*\` | N1 Kanji + Vocabulary |
         | \`jlpt-kana-only-vocab-general-*\` | Kana-only vocabulary (hiragana/katakana) |
         | \`jlpt-non-jlpt-vocab-general-*\` | Words using kanji outside JLPT scope |
 
         ## Tiered Decks (by Level + Frequency)
 
-        Advanced organization with 4 frequency tiers per JLPT level. Each tier contains both kanji and vocabulary decks.
+        Advanced organization with 4 frequency tiers per JLPT level. Each archive contains both kanji and vocabulary decks organized by frequency.
 
         **Tier System:**
         - **Tier 1**: Top 25% most frequent (easiest/common words)
@@ -480,22 +443,15 @@ jobs:
 
         | File | Contents |
         |------|----------|
-        | \`jlpt-N5-kanji-tiered-*\` | N5 Kanji organized by frequency tiers |
-        | \`jlpt-N5-vocab-tiered-*\` | N5 Vocabulary organized by frequency tiers |
-        | \`jlpt-N4-kanji-tiered-*\` | N4 Kanji organized by frequency tiers |
-        | \`jlpt-N4-vocab-tiered-*\` | N4 Vocabulary organized by frequency tiers |
-        | \`jlpt-N3-kanji-tiered-*\` | N3 Kanji organized by frequency tiers |
-        | \`jlpt-N3-vocab-tiered-*\` | N3 Vocabulary organized by frequency tiers |
-        | \`jlpt-N2-kanji-tiered-*\` | N2 Kanji organized by frequency tiers |
-        | \`jlpt-N2-vocab-tiered-*\` | N2 Vocabulary organized by frequency tiers |
-        | \`jlpt-N1-kanji-tiered-*\` | N1 Kanji organized by frequency tiers |
-        | \`jlpt-N1-vocab-tiered-*\` | N1 Vocabulary organized by frequency tiers |
+        | \`jlpt-N5-tiered-*\` | N5 Kanji + Vocabulary by frequency tiers |
+        | \`jlpt-N4-tiered-*\` | N4 Kanji + Vocabulary by frequency tiers |
+        | \`jlpt-N3-tiered-*\` | N3 Kanji + Vocabulary by frequency tiers |
+        | \`jlpt-N2-tiered-*\` | N2 Kanji + Vocabulary by frequency tiers |
+        | \`jlpt-N1-tiered-*\` | N1 Kanji + Vocabulary by frequency tiers |
 
-        ## File Formats
+        ## File Format
 
-        Each deck is available in two formats:
-        - \`.tar.gz\` - Gzipped tar archive (Linux/macOS preferred)
-        - \`.zip\` - ZIP archive (Windows preferred)
+        All decks are distributed as ZIP archives for universal compatibility.
 
         ## Data Sources
 
