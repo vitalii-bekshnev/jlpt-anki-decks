@@ -111,20 +111,31 @@ Check if someone has already built decks for your language in the releases.
    - `jmdict-[lang]-[version].json` (vocabulary)
    - `jmdict-examples-[lang]-[version].json` (examples - optional)
 3. Clone this repository
-4. Run the generator:
+4. Run the generator using the shell scripts:
 
 ```bash
-# For kanji decks
-python scripts/create_kanji_decks.py -i path/to/kanjidic2-[lang].json
+# Generate general decks (kanji and vocabulary by JLPT level)
+./generate_general_decks.sh
 
-# For vocabulary decks with examples
-python scripts/create_vocab_decks.py \
-  --jmdict path/to/jmdict-[lang].json \
-  --jmdict-examples path/to/jmdict-examples-[lang].json \
-  --kanjidic path/to/kanjidic2-[lang].json
+# Generate tiered decks (organized by JLPT level and frequency tier)
+./generate_tiered_decks.sh
+
+# Generate with custom output directory
+./generate_general_decks.sh -o /path/to/output
+./generate_tiered_decks.sh -o /path/to/output
+
+# Generate without example sentences
+./generate_general_decks.sh --no-examples
+./generate_tiered_decks.sh --no-examples
+
+# Generate tiered decks with only common words
+./generate_tiered_decks.sh --common-only
+
+# Generate tiered decks with different tier calculation strategy
+./generate_tiered_decks.sh --tier-strategy average
 ```
 
-The generated CSV files will be in the `decks/` folder, ready to import into Anki.
+The generated CSV files will be in the output folder, ready to import into Anki.
 
 ## ⚠️ Troubleshooting
 
@@ -212,13 +223,46 @@ The `.github/workflows/build-and-release.yml` file defines a GitHub Actions work
 
 ### Script Options
 
-**Kanji Decks:**
+All deck generation is handled by shell scripts that wrap the Python scripts:
+
+**General Decks (by JLPT level only):**
 ```bash
-python scripts/create_kanji_decks.py -i input.json -o output_dir/
+./generate_general_decks.sh -o output_dir/
 ```
 
-**Vocabulary Decks:**
+Generates kanji and vocabulary decks organized by JLPT level (N5-N1).
+
+**Tiered Decks (by JLPT level and frequency):**
 ```bash
+./generate_tiered_decks.sh -o output_dir/
+```
+
+Generates decks organized by both JLPT level and frequency tier (Tier 1-4).
+
+**Common Options:**
+```bash
+# Custom output directory
+./generate_general_decks.sh -o my_decks/
+./generate_tiered_decks.sh -o my_decks/
+
+# Exclude example sentences
+./generate_general_decks.sh --no-examples
+./generate_tiered_decks.sh --no-examples
+
+# Only common words (tiered only)
+./generate_tiered_decks.sh --common-only
+
+# Tier calculation strategy (tiered only): conservative, average, or first
+./generate_tiered_decks.sh --tier-strategy average
+```
+
+For advanced customization, you can run the Python scripts directly:
+
+```bash
+# Direct Python usage for kanji decks
+python scripts/create_kanji_decks.py -i input.json -o output_dir/
+
+# Direct Python usage for vocabulary decks
 python scripts/create_vocab_decks.py \
   --jmdict path/to/jmdict.json \
   --jmdict-examples path/to/examples.json \
@@ -226,10 +270,8 @@ python scripts/create_vocab_decks.py \
   --output-dir my_decks/ \
   --examples          # Include example sentences
   --common-only       # Only common words
-```
 
-**Tiered Decks:**
-```bash
+# Direct Python usage for tiered decks
 python scripts/create_tiered_decks.py \
   --jmdict path/to/jmdict.json \
   --jmdict-examples path/to/examples.json \
