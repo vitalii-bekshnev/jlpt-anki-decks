@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - JLPT Anki Generator</title>
+  <meta name="description" content="Detailed information about JLPT Anki Generator, deck types, features, and usage guide.">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="logo">JLPT Anki</a>
+      <div class="nav-wrapper">
+        <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html" class="active">About</a></li>
+          <li><a href="releases.html">Releases</a></li>
+          <li><a href="contribute.html">Contribute</a></li>
+        </ul>
+      </nav>
+        <div class="lang-switcher">
+          <a href="about.html" class="active" title="English">EN</a>
+          <a href="../ru/about.html" title="Русский">RU</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>About</h1>
+      <p class="subtitle">Everything you need to know about the project</p>
+    </section>
+
+    <div class="decoration">❀ ❀ ❀</div>
+
+    <section class="vn-box">
+      <h2>What's Included</h2>
+      
+      <h3>Kanji Decks</h3>
+      <p>Learn kanji with readings, meanings, stroke counts, and more. Each card includes:</p>
+      <ul>
+        <li>The kanji character</li>
+        <li>On'yomi and kun'yomi readings</li>
+        <li>English meanings</li>
+        <li>Stroke count</li>
+        <li>Frequency rank (how common it is)</li>
+      </ul>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Kanji</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>N5</td>
+            <td>103</td>
+            <td>Beginner level</td>
+          </tr>
+          <tr>
+            <td>N4</td>
+            <td>181</td>
+            <td>Basic level</td>
+          </tr>
+          <tr>
+            <td>N3</td>
+            <td>579</td>
+            <td>Intermediate</td>
+          </tr>
+          <tr>
+            <td>N2</td>
+            <td>160</td>
+            <td>Upper-intermediate</td>
+          </tr>
+          <tr>
+            <td>N1</td>
+            <td>1,207</td>
+            <td>Advanced</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Vocabulary Decks</h3>
+      <p>Learn words with example sentences. Each card includes:</p>
+      <ul>
+        <li>The word (kanji or kana)</li>
+        <li>Readings</li>
+        <li>English meanings</li>
+        <li>Example sentences (when available)</li>
+        <li>JLPT level tag</li>
+      </ul>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Words</th>
+            <th>With Examples</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>N5</td>
+            <td>~7,700</td>
+            <td>~1,600</td>
+          </tr>
+          <tr>
+            <td>N4</td>
+            <td>~15,100</td>
+            <td>~2,900</td>
+          </tr>
+          <tr>
+            <td>N3</td>
+            <td>~68,500</td>
+            <td>~10,300</td>
+          </tr>
+          <tr>
+            <td>N2</td>
+            <td>~13,000</td>
+            <td>~2,150</td>
+          </tr>
+          <tr>
+            <td>N1</td>
+            <td>~65,100</td>
+            <td>~7,700</td>
+          </tr>
+          <tr>
+            <td>Kana-only</td>
+            <td>~40,700</td>
+            <td>Words without kanji</td>
+          </tr>
+          <tr>
+            <td>Non-JLPT</td>
+            <td>~5,100</td>
+            <td>Words outside JLPT scope</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="vn-box">
+      <h2>Tiered Decks (Advanced)</h2>
+      <p>Want to focus on the most common words first? Use tiered decks!</p>
+      <p>Each JLPT level is split into 4 frequency tiers:</p>
+      <ul>
+        <li><strong>Tier 1:</strong> Top 25% most common (start here!)</li>
+        <li><strong>Tier 2:</strong> 25-50% frequency</li>
+        <li><strong>Tier 3:</strong> 50-75% frequency</li>
+        <li><strong>Tier 4:</strong> Bottom 25% least common</li>
+      </ul>
+      <p>This helps you learn the most useful words first within each level.</p>
+    </section>
+
+    <section class="vn-box">
+      <h2>How Cards Are Organized</h2>
+      
+      <h3>Kanji Levels</h3>
+      <p>Based on the old JLPT system mapped to new levels:</p>
+      <ul>
+        <li>Old Level 4 → N5 (easiest)</li>
+        <li>Old Level 3 → N4</li>
+        <li>Old Level 2 → N3 or N2 (split by grade)</li>
+        <li>Old Level 1 → N1 (hardest)</li>
+      </ul>
+
+      <h3>Vocabulary Levels</h3>
+      <p>Words are assigned to the <strong>highest</strong> JLPT level of any kanji they contain:</p>
+      <ul>
+        <li>Example: A word with N5 + N1 kanji → N1 deck</li>
+        <li>This prevents you from seeing kanji you haven't studied yet</li>
+        <li>Kana-only words go in a separate "kana_only" deck</li>
+      </ul>
+    </section>
+
+    <section class="vn-box">
+      <h2>How Releases Work</h2>
+      <p>New decks are automatically built and released monthly:</p>
+      <ol>
+        <li><strong>Check for updates:</strong> The system checks for new dictionary data from JMdict</li>
+        <li><strong>Generate decks:</strong> Creates kanji and vocabulary decks for all JLPT levels</li>
+        <li><strong>Create archives:</strong> Packages everything into easy-to-download files</li>
+        <li><strong>Publish:</strong> Uploads to GitHub Releases with version numbers</li>
+      </ol>
+      <p><strong>Version numbers</strong> match the dictionary version (e.g., <code>3.6.2+20260209125202</code>), so you know exactly which dictionary data your cards come from.</p>
+      <p><strong>Release schedule:</strong> First of every month (or whenever dictionary data updates).</p>
+    </section>
+
+    <section class="vn-box">
+      <h2>Other Languages</h2>
+      <p>Want decks in your language? The generator supports many languages!</p>
+      <p>Available languages (check the <a href="https://github.com/scriptin/jmdict-simplified/releases">jmdict-simplified releases</a>):</p>
+      <ul>
+        <li>Russian (<code>jmdict-rus</code>)</li>
+        <li>German (<code>jmdict-deu</code>)</li>
+        <li>French (<code>jmdict-fra</code>)</li>
+        <li>Spanish (<code>jmdict-spa</code>)</li>
+        <li>Portuguese (<code>jmdict-por</code>)</li>
+        <li>Italian (<code>jmdict-ita</code>)</li>
+        <li>Dutch (<code>jmdict-dut</code>)</li>
+        <li>And more!</li>
+      </ul>
+      <p>See the <a href="contribute.html">Contribute page</a> for instructions on generating decks in other languages.</p>
+    </section>
+
+    <section class="vn-box">
+      <h2>Troubleshooting</h2>
+      
+      <h3>Import shows weird characters?</h3>
+      <p>→ Make sure "Allow HTML in fields" is checked when importing</p>
+
+      <h3>Missing example sentences?</h3>
+      <p>→ Only ~17% of words have examples. Common words are more likely to have them.</p>
+
+      <h3>Files are too big?</h3>
+      <p>→ Download only the specific level you need, or use tiered decks to start with common words only.</p>
+
+      <h3>Can't find a specific kanji?</h3>
+      <p>→ It might be in the "non-JLPT" vocab deck if it doesn't have an official JLPT level assigned.</p>
+    </section>
+
+    <section class="vn-box">
+      <h2>License & Attribution</h2>
+      <p>These decks are derived from:</p>
+      <ul>
+        <li><strong>JMdict:</strong> Electronic Dictionary Research and Development Group (EDRDG)</li>
+        <li><strong>Kanjidic2:</strong> Creative Commons Attribution-ShareAlike License v4.0</li>
+        <li><strong>Tatoeba Examples:</strong> Creative Commons CC-BY 2.0 FR</li>
+      </ul>
+      <h3>Acknowledgments</h3>
+      <ul>
+        <li><a href="https://www.edrdg.org/">EDRDG</a> - Dictionary data</li>
+        <li><a href="https://tatoeba.org/">Tatoeba Project</a> - Example sentences</li>
+        <li><a href="https://github.com/scriptin/jmdict-simplified">jmdict-simplified</a> - JSON conversion</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <p class="footer-text">Made with ❀ for Japanese learners worldwide</p>
+      <div class="footer-links">
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki">GitHub</a>
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/issues">Issues</a>
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/blob/main/LICENSE">License</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/sakura.js"></script>
+</body>
+</html>

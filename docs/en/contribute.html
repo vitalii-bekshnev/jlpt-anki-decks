@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contribute - JLPT Anki Generator</title>
+  <meta name="description" content="Contribute to JLPT Anki Generator, report issues, or generate decks in other languages.">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="logo">JLPT Anki</a>
+      <div class="nav-wrapper">
+        <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="releases.html">Releases</a></li>
+          <li><a href="contribute.html" class="active">Contribute</a></li>
+        </ul>
+      </nav>
+        <div class="lang-switcher">
+          <a href="contribute.html" class="active" title="English">EN</a>
+          <a href="../ru/contribute.html" title="Русский">RU</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Contribute</h1>
+      <p class="subtitle">Help improve the project or build decks in your language</p>
+    </section>
+
+    <div class="decoration">❀ ❀ ❀</div>
+
+    <section class="vn-box">
+      <h2>🤝 How to Contribute</h2>
+      <p>There are several ways you can help improve this project:</p>
+      <ul>
+        <li><strong>Report bugs:</strong> Found an issue? Let us know!</li>
+        <li><strong>Suggest features:</strong> Have an idea? We'd love to hear it</li>
+        <li><strong>Submit code:</strong> Improve the generator scripts</li>
+        <li><strong>Documentation:</strong> Help improve guides and docs</li>
+        <li><strong>Translations:</strong> Generate decks in other languages</li>
+      </ul>
+    </section>
+
+    <section class="vn-box">
+      <h2>🐛 Reporting Issues</h2>
+      <p>If you find a bug or have a suggestion:</p>
+      <ol>
+        <li>Check if the issue already exists on the <a href="https://github.com/vitaliibekshnev/jlpt_anki/issues">Issues page</a></li>
+        <li>If not, create a new issue with:
+          <ul>
+            <li>Clear description of the problem</li>
+            <li>Steps to reproduce (if applicable)</li>
+            <li>Expected vs actual behavior</li>
+            <li>Any relevant error messages</li>
+          </ul>
+        </li>
+      </ol>
+      <div style="margin-top: 1rem;">
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/issues/new" class="btn">Create Issue</a>
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/issues" class="btn btn-secondary">View Issues</a>
+      </div>
+    </section>
+
+    <section class="vn-box">
+      <h2>💻 Contributing Code</h2>
+      <p>Want to improve the generator? Here's how:</p>
+      
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Python 3.7 or higher</li>
+        <li>Basic understanding of Anki card formats</li>
+        <li>Familiarity with JLPT structure (helpful but not required)</li>
+      </ul>
+
+      <h3>Setup</h3>
+      <pre><code># Clone the repository
+git clone https://github.com/vitaliibekshnev/jlpt_anki.git
+cd jlpt_anki
+
+# Install dependencies (if any)
+pip install -r requirements.txt  # if available</code></pre>
+
+      <h3>Making Changes</h3>
+      <ol>
+        <li>Fork the repository</li>
+        <li>Create a feature branch: <code>git checkout -b feature/your-feature</code></li>
+        <li>Make your changes</li>
+        <li>Test by generating decks locally</li>
+        <li>Submit a pull request</li>
+      </ol>
+
+      <h3>Project Structure</h3>
+      <pre><code>jlpt_anki/
+├── scripts/
+│   ├── create_kanji_decks.py      # Kanji deck generator
+│   ├── create_vocab_decks.py      # Vocabulary deck generator
+│   ├── create_tiered_decks.py     # Tiered/frequency-based decks
+│   └── jmdict_utils.py            # Shared utilities
+├── .github/workflows/
+│   └── build-and-release.yml      # Automated release workflow
+└── decks/                         # Generated decks (output)</code></pre>
+
+      <div style="margin-top: 1.5rem;">
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/fork" class="btn">Fork Repository</a>
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/pulls" class="btn btn-secondary">View Pull Requests</a>
+      </div>
+    </section>
+
+    <section class="vn-box">
+      <h2>🌍 Generate Decks in Other Languages</h2>
+      <p>The generator supports multiple languages! Here's how to build decks in your language:</p>
+
+      <h3>Step 1: Download Dictionary Files</h3>
+      <p>Get the JSON files for your language from <a href="https://github.com/scriptin/jmdict-simplified/releases">jmdict-simplified releases</a>:</p>
+      <ul>
+        <li><code>kanjidic2-[lang]-[version].json</code> (kanji)</li>
+        <li><code>jmdict-[lang]-[version].json</code> (vocabulary)</li>
+        <li><code>jmdict-examples-[lang]-[version].json</code> (examples - optional)</li>
+      </ul>
+
+      <h3>Step 2: Generate Kanji Decks</h3>
+      <pre><code>python scripts/create_kanji_decks.py \
+  -i path/to/kanjidic2-[lang].json \
+  -o output_directory/</code></pre>
+
+      <h3>Step 3: Generate Vocabulary Decks</h3>
+      <pre><code>python scripts/create_vocab_decks.py \
+  --jmdict path/to/jmdict-[lang].json \
+  --jmdict-examples path/to/jmdict-examples-[lang].json \
+  --kanjidic path/to/kanjidic2-[lang].json \
+  -o output_directory/ \
+  --examples</code></pre>
+
+      <h3>Step 4: Generate Tiered Decks</h3>
+      <pre><code>python scripts/create_tiered_decks.py \
+  --jmdict path/to/jmdict-[lang].json \
+  --jmdict-examples path/to/jmdict-examples-[lang].json \
+  --kanjidic path/to/kanjidic2-[lang].json \
+  -o tiered_output/</code></pre>
+
+      <h3>Available Languages</h3>
+      <p>Supported language codes (check <a href="https://github.com/scriptin/jmdict-simplified/releases">jmdict-simplified</a> for availability):</p>
+      <ul>
+        <li>English (<code>jmdict-eng</code>)</li>
+        <li>Russian (<code>jmdict-rus</code>)</li>
+        <li>German (<code>jmdict-deu</code>)</li>
+        <li>French (<code>jmdict-fra</code>)</li>
+        <li>Spanish (<code>jmdict-spa</code>)</li>
+        <li>Portuguese (<code>jmdict-por</code>)</li>
+        <li>Italian (<code>jmdict-ita</code>)</li>
+        <li>Dutch (<code>jmdict-dut</code>)</li>
+        <li>And more!</li>
+      </ul>
+
+      <div style="margin-top: 1.5rem;">
+        <a href="https://github.com/scriptin/jmdict-simplified/releases" class="btn">Get Dictionary Files</a>
+      </div>
+    </section>
+
+    <section class="vn-box">
+      <h2>📋 Code Guidelines</h2>
+      <ul>
+        <li>Follow PEP 8 style guidelines for Python code</li>
+        <li>Write clear, descriptive commit messages</li>
+        <li>Add comments for complex logic</li>
+        <li>Test your changes before submitting</li>
+        <li>Update documentation if needed</li>
+      </ul>
+    </section>
+
+    <section class="vn-box">
+      <h2>🙏 Thank You!</h2>
+      <p>Every contribution helps make this project better for Japanese learners around the world. Whether you're reporting a bug, suggesting a feature, or contributing code, your help is greatly appreciated!</p>
+      <div style="margin-top: 1.5rem; text-align: center; font-size: 2rem;">
+        ❀ ❀ ❀
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <p class="footer-text">Made with ❀ for Japanese learners worldwide</p>
+      <div class="footer-links">
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki">GitHub</a>
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/issues">Issues</a>
+        <a href="https://github.com/vitaliibekshnev/jlpt_anki/blob/main/LICENSE">License</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/sakura.js"></script>
+</body>
+</html>

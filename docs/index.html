@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JLPT Anki Generator - Free Japanese Study Decks</title>
+  <meta name="description" content="Free Anki flashcard decks for JLPT (N5-N1) study. Kanji and vocabulary with examples.">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #fef6f6 0%, #fff0f3 50%, #fef6f6 100%);
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      color: #c45c6a;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #7a7a7a;
+      margin-bottom: 2rem;
+    }
+    .lang-options {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .lang-btn {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #ffb7c5 0%, #e89baf 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 500;
+      transition: transform 0.3s ease;
+    }
+    .lang-btn:hover {
+      transform: translateY(-2px);
+    }
+    .loading {
+      color: #7a7a7a;
+      margin-top: 1rem;
+    }
+  </style>
+  <script>
+    // Auto-detect and redirect
+    (function() {
+      // Check stored preference
+      const stored = localStorage.getItem('preferred-language');
+      if (stored) {
+        window.location.replace('./' + stored + '/index.html');
+        return;
+      }
+      
+      // Detect from browser language
+      const browserLang = navigator.language || navigator.userLanguage;
+      if (browserLang && browserLang.toLowerCase().startsWith('ru')) {
+        window.location.replace('./ru/index.html');
+      } else {
+        window.location.replace('./en/index.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>JLPT Anki Generator</h1>
+    <p class="subtitle">Redirecting...</p>
+    <p class="loading">Please select your language:</p>
+    <div class="lang-options">
+      <a href="./en/index.html" class="lang-btn">English</a>
+      <a href="./ru/index.html" class="lang-btn">Русский</a>
+    </div>
+  </div>
+</body>
+</html>
