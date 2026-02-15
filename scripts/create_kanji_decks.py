@@ -14,6 +14,11 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from jmdict_utils import (
+    build_kanji_frequency_map,
+    calculate_frequency_tiers,
+)
+
 
 def load_kanjidic(filepath: Path) -> Dict:
     """Load and parse kanjidic2 JSON file with error handling"""
@@ -197,6 +202,8 @@ def create_anki_csv(characters: List[Dict], output_path: Path, jlpt_tier: str) -
         tags_list = [jlpt_tier]
         if char.get("grade"):
             tags_list.append(f"grade{char['grade']}")
+        if char.get("tier"):
+            tags_list.append(f"freq_tier{char['tier']}")
 
         row = {"kanji": char["kanji"], "back": back, "tags": " ".join(tags_list)}
         output_rows.append(row)
@@ -266,6 +273,12 @@ def main():
         )
         sys.exit(1)
 
+    # Calculate frequency tiers for all kanji with frequency data
+    print("Calculating frequency tiers...")
+    kanji_freq_map = build_kanji_frequency_map(data)
+    kanji_tier_map = calculate_frequency_tiers(kanji_freq_map)
+    print(f"Calculated tiers for {len(kanji_tier_map)} kanji with frequency data")
+
     # Group characters by JLPT level
     # Old JLPT: 4=N5, 3=N4, 2=N3/N2, 1=N1
     jlpt_groups: Dict[str, List] = {
@@ -283,6 +296,11 @@ def main():
     for char in data.get("characters", []):
         result = process_character(char)
         if result:
+            # Add tier information
+            kanji = result["kanji"]
+            if kanji in kanji_tier_map:
+                result["tier"] = kanji_tier_map[kanji]
+
             level = result["jlpt_level"]
             if level == 4:
                 jlpt_groups["N5"].append(result)

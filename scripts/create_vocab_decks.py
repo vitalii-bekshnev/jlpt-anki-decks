@@ -18,7 +18,10 @@ from typing import Dict, List, Optional
 from jmdict_utils import (
     load_json,
     build_kanji_jlpt_map,
+    build_kanji_frequency_map,
+    calculate_frequency_tiers,
     get_word_jlpt_level,
+    get_word_frequency_tier,
     process_word,
 )
 
@@ -53,6 +56,8 @@ def create_vocab_csv(
             tags_list.append("common")
         if word.get("form_type"):
             tags_list.append(word["form_type"])
+        if word.get("tier"):
+            tags_list.append(f"freq_tier{word['tier']}")
 
         row = {"word": word["word"], "back": back, "tags": " ".join(tags_list)}
         output_rows.append(row)
@@ -119,6 +124,19 @@ Examples:
         "--common-only", action="store_true", help="Only include words marked as common"
     )
 
+    parser.add_argument(
+        "--tier-strategy",
+        type=str,
+        choices=["conservative", "average", "first"],
+        default="conservative",
+        help=(
+            "Strategy for calculating word frequency tier from kanji tiers (default: conservative). "
+            "conservative: use highest tier (least frequent kanji) - safest for learning; "
+            "average: round up average of all kanji tiers; "
+            "first: use only the first kanji's tier"
+        ),
+    )
+
     return parser.parse_args()
 
 
@@ -155,10 +173,16 @@ def main():
         )
         sys.exit(1)
 
-    print("Loading Kanjidic2 (kanji JLPT data)...")
+    print("Loading Kanjidic2 (kanji JLPT and frequency data)...")
     kanjidic_data = load_json(kanjidic_file)
     kanji_jlpt_map = build_kanji_jlpt_map(kanjidic_data)
     print(f"Loaded {len(kanji_jlpt_map)} kanji with JLPT levels")
+
+    # Calculate frequency tiers for kanji
+    print("Calculating kanji frequency tiers...")
+    kanji_freq_map = build_kanji_frequency_map(kanjidic_data)
+    kanji_tier_map = calculate_frequency_tiers(kanji_freq_map)
+    print(f"Calculated tiers for {len(kanji_tier_map)} kanji with frequency data")
 
     print(
         f"\nLoading JMdict ({'with examples' if args.examples else 'without examples'})..."
@@ -204,6 +228,14 @@ def main():
                 continue
 
             jlpt_level = get_word_jlpt_level(word, kanji_jlpt_map)
+
+            # Calculate frequency tier for the word
+            tier = get_word_frequency_tier(
+                word, kanji_tier_map, strategy=args.tier_strategy
+            )
+            if tier:
+                result["tier"] = tier
+
             jlpt_groups[jlpt_level].append(result)
             processed += 1
         else:
@@ -260,6 +292,16 @@ def main():
     total = sum(len(jlpt_groups[t]) for t in ["N5", "N4", "N3", "N2", "N1"])
     print(f"\nTotal JLPT words: {total}")
     print(f"Files saved to: {output_dir.absolute()}")
+
+    print("\n" + "=" * 60)
+    print("FREQUENCY TIER INFORMATION")
+    print("=" * 60)
+    print(f"Tier strategy: {args.tier_strategy}")
+    print("Tier 1: Top 25% most frequent kanji")
+    print("Tier 2: 25-50%")
+    print("Tier 3: 50-75%")
+    print("Tier 4: Bottom 25% least frequent")
+    print("\nWords are tagged with 'freq_tierN' where N is 1-4")
 
     print("\n" + "=" * 60)
     print("IMPORT INSTRUCTIONS")

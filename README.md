@@ -75,6 +75,8 @@ Pre-built decks are included in the `decks/` directory for immediate use, but th
   - `jmdict-eng-3.6.2.json` (for basic vocab decks)
   - `jmdict-examples-eng-3.6.2.json` (for vocab decks with examples)
 
+**Note for other languages:** To generate decks in other languages (e.g., Russian, German, French, Spanish), select the corresponding JSON files from the [jmdict-simplified releases](https://github.com/scriptin/jmdict-simplified/releases) page (e.g., `jmdict-rus-3.6.2.json`, `jmdict-deu-3.6.2.json`) and follow the same instructions.
+
 ### Installation
 
 ```bash

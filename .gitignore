@@ -52,4 +52,10 @@ Thumbs.db
 anki_decks/
 anki_vocab_jlpt/
 anki_vocab_jlpt_examples/
+tiered_decks/
 *.csv
+
+# JMdict data files (download separately)
+jmdict-eng-*.json
+jmdict-examples-eng-*.json
+kanjidic2-en-*.json
