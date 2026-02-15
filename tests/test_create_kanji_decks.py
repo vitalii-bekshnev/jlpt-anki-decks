@@ -20,6 +20,7 @@ from create_kanji_decks import (
     extract_meanings,
     extract_nanori,
     extract_readings,
+    find_example_words,
     format_back_field,
     load_kanjidic,
     main,
@@ -664,3 +665,378 @@ class TestMain:
         tiers_called = [call[0][2] for call in call_args_list]
         assert "N5" in tiers_called
         assert "N4" in tiers_called
+
+
+class TestFindExampleWords:
+    """Tests for find_example_words function"""
+
+    def test_find_examples_for_kanji(self):
+        """Test finding words containing a kanji"""
+        words_data = [
+            {
+                "kanji": [{"text": "学校"}],
+                "kana": [{"text": "がっこう"}],
+                "sense": [{"gloss": [{"lang": "eng", "text": "school"}]}],
+            },
+            {
+                "kanji": [{"text": "学生"}],
+                "kana": [{"text": "がくせい"}],
+                "sense": [{"gloss": [{"lang": "eng", "text": "student"}]}],
+            },
+            {
+                "kanji": [{"text": "日本"}],
+                "kana": [{"text": "にほん"}],
+                "sense": [{"gloss": [{"lang": "eng", "text": "Japan"}]}],
+            },
+        ]
+        tags = {"n": "noun"}
+
+        result = find_example_words("学", words_data, tags, max_examples=3)
+
+        assert len(result) == 2
+        assert any(word["word"] == "学校" for word in result)
+        assert any(word["word"] == "学生" for word in result)
+
+    def test_max_examples_limit(self):
+        """Test that max_examples limits the results"""
+        words_data = [
+            {
+                "kanji": [{"text": f"学{chr(65 + i)}"}],
+                "kana": [{"text": f"がく{chr(65 + i)}"}],
+                "sense": [
+                    {
+                        "gloss": [{"lang": "eng", "text": f"meaning{i}"}],
+                        "partOfSpeech": [],
+                    }
+                ],
+            }
+            for i in range(10)
+        ]
+        tags = {}
+
+        result = find_example_words("学", words_data, tags, max_examples=3)
+
+        assert len(result) == 3
+
+    def test_no_matching_words(self):
+        """Test when no words contain the kanji"""
+        words_data = [
+            {
+                "kanji": [{"text": "日本"}],
+                "kana": [{"text": "にほん"}],
+                "sense": [],
+            }
+        ]
+        tags = {}
+
+        result = find_example_words("学", words_data, tags)
+
+        assert result == []
+
+    def test_empty_words_list(self):
+        """Test with empty words list"""
+        result = find_example_words("学", [], {})
+        assert result == []
+
+    def test_kana_only_words_skipped(self):
+        """Test that kana-only words are skipped"""
+        words_data = [
+            {
+                "kanji": [],  # No kanji form
+                "kana": [{"text": "あの"}],
+                "sense": [
+                    {"gloss": [{"lang": "eng", "text": "um"}], "partOfSpeech": []}
+                ],
+            },
+            {
+                "kanji": [{"text": "学校"}],
+                "kana": [{"text": "がっこう"}],
+                "sense": [
+                    {"gloss": [{"lang": "eng", "text": "school"}], "partOfSpeech": []}
+                ],
+            },
+        ]
+        tags = {}
+
+        result = find_example_words("学", words_data, tags)
+
+        assert len(result) == 1
+        assert result[0]["word"] == "学校"
+
+
+class TestFormatBackFieldWithExamples:
+    """Tests for format_back_field with word examples"""
+
+    def test_format_with_example_words(self):
+        """Test formatting with example words"""
+        char = {
+            "kanji": "学",
+            "meanings": "study",
+            "on_readings": "ガク",
+            "kun_readings": "まな.ぶ",
+        }
+        example_words = [
+            {"word": "学校", "readings": "がっこう", "senses": "1. (noun) school"},
+            {"word": "学生", "readings": "がくせい", "senses": "1. (noun) student"},
+        ]
+
+        result = format_back_field(char, example_words)
+
+        assert "Example Words:" in result
+        assert "1. 学校" in result
+        assert "がっこう" in result
+        assert "school" in result
+        assert "2. 学生" in result
+        assert "がくせい" in result
+        assert "student" in result
+
+    def test_format_truncates_long_senses(self):
+        """Test that long senses are truncated"""
+        char = {"kanji": "一", "meanings": "one"}
+        long_sense = "A" * 150
+        example_words = [
+            {"word": "一人", "readings": "ひとり", "senses": long_sense},
+        ]
+
+        result = format_back_field(char, example_words)
+
+        assert "..." in result
+        assert len(result) < len(long_sense) + 100
+
+    def test_format_without_examples(self):
+        """Test formatting without example words"""
+        char = {
+            "kanji": "学",
+            "meanings": "study",
+            "on_readings": "ガク",
+            "kun_readings": "まな.ぶ",
+        }
+
+        result = format_back_field(char, None)
+
+        assert "Example Words:" not in result
+        assert "Meanings:" in result
+
+    def test_format_with_empty_examples(self):
+        """Test formatting with empty example words list"""
+        char = {
+            "kanji": "学",
+            "meanings": "study",
+        }
+
+        result = format_back_field(char, [])
+
+        assert "Example Words:" not in result
+
+
+class TestCreateAnkiCsvWithExamples:
+    """Tests for create_anki_csv with example words"""
+
+    def test_csv_with_example_words(self, tmp_path):
+        """Test creating CSV with word examples"""
+        output_path = tmp_path / "test.csv"
+        characters = [
+            {
+                "kanji": "学",
+                "meanings": "study",
+                "on_readings": "ガク",
+                "kun_readings": "まな.ぶ",
+                "grade": 5,
+            }
+        ]
+        example_words_map = {
+            "学": [
+                {"word": "学校", "readings": "がっこう", "senses": "1. (noun) school"},
+            ]
+        }
+
+        create_anki_csv(characters, output_path, "N3", example_words_map)
+
+        with open(output_path, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+            assert "Example Words:" in rows[0]["back"]
+            assert "学校" in rows[0]["back"]
+
+    def test_csv_without_example_map(self, tmp_path):
+        """Test creating CSV without example words map"""
+        output_path = tmp_path / "test.csv"
+        characters = [{"kanji": "一", "meanings": "one"}]
+
+        create_anki_csv(characters, output_path, "N5")
+
+        with open(output_path, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+            assert "Example Words:" not in rows[0]["back"]
+
+
+class TestParseArgsWithJmdict:
+    """Tests for parse_args with new jmdict arguments"""
+
+    def test_jmdict_argument(self):
+        """Test --jmdict argument"""
+        with patch(
+            "sys.argv",
+            ["create_kanji_decks.py", "--jmdict", "/path/to/jmdict.json"],
+        ):
+            args = parse_args()
+            assert args.jmdict == Path("/path/to/jmdict.json")
+
+    def test_max_examples_argument(self):
+        """Test --max-examples argument"""
+        with patch("sys.argv", ["create_kanji_decks.py", "--max-examples", "5"]):
+            args = parse_args()
+            assert args.max_examples == 5
+
+    def test_max_examples_default(self):
+        """Test default max-examples value"""
+        with patch("sys.argv", ["create_kanji_decks.py"]):
+            args = parse_args()
+            assert args.max_examples == 3
+
+    def test_jmdict_none_by_default(self):
+        """Test that jmdict is None by default"""
+        with patch("sys.argv", ["create_kanji_decks.py"]):
+            args = parse_args()
+            assert args.jmdict is None
+
+
+class TestMainWithJmdict:
+    """Tests for main function with jmdict integration"""
+
+    @pytest.fixture
+    def mock_kanjidic_data(self):
+        """Fixture for mock Kanjidic data"""
+        return {
+            "characters": [
+                {
+                    "literal": "一",
+                    "misc": {"jlptLevel": 4, "strokeCounts": [1], "grade": 1},
+                    "readingMeaning": {
+                        "groups": [
+                            {
+                                "readings": [
+                                    {"type": "ja_on", "value": "イチ"},
+                                    {"type": "ja_kun", "value": "ひと"},
+                                ],
+                                "meanings": [{"lang": "en", "value": "one"}],
+                            }
+                        ]
+                    },
+                    "radicals": [{"value": "一"}],
+                    "dictionaryReferences": [],
+                }
+            ]
+        }
+
+    @pytest.fixture
+    def mock_jmdict_data(self):
+        """Fixture for mock JMdict data"""
+        return {
+            "words": [
+                {
+                    "kanji": [{"text": "一人", "common": True}],
+                    "kana": [{"text": "ひとり", "common": True}],
+                    "sense": [
+                        {
+                            "gloss": [{"lang": "eng", "text": "one person"}],
+                            "partOfSpeech": ["n"],
+                        }
+                    ],
+                }
+            ],
+            "tags": {"n": "noun"},
+        }
+
+    @patch("create_kanji_decks.load_kanjidic")
+    @patch("create_kanji_decks.load_json")
+    @patch("create_kanji_decks.create_anki_csv")
+    def test_main_with_jmdict(
+        self,
+        mock_create_csv,
+        mock_load_json,
+        mock_load_kanjidic,
+        tmp_path,
+        mock_kanjidic_data,
+        mock_jmdict_data,
+    ):
+        """Test main function with jmdict for word examples"""
+        mock_load_kanjidic.return_value = mock_kanjidic_data
+        mock_load_json.return_value = mock_jmdict_data
+
+        output_dir = tmp_path / "output"
+        input_file = tmp_path / "kanjidic.json"
+        jmdict_file = tmp_path / "jmdict.json"
+        input_file.write_text("{}")
+        jmdict_file.write_text("{}")
+
+        with patch(
+            "sys.argv",
+            [
+                "create_kanji_decks.py",
+                "-i",
+                str(input_file),
+                "--jmdict",
+                str(jmdict_file),
+                "-o",
+                str(output_dir),
+            ],
+        ):
+            main()
+
+        # Check that create_anki_csv was called with example_words_map
+        call_args = mock_create_csv.call_args
+        assert call_args[0][3] is not None  # example_words_map should be provided
+
+    @patch("create_kanji_decks.load_kanjidic")
+    @patch("create_kanji_decks.create_anki_csv")
+    def test_main_without_jmdict(
+        self, mock_create_csv, mock_load_kanjidic, tmp_path, mock_kanjidic_data
+    ):
+        """Test main function without jmdict (no word examples)"""
+        mock_load_kanjidic.return_value = mock_kanjidic_data
+
+        output_dir = tmp_path / "output"
+        input_file = tmp_path / "kanjidic.json"
+        input_file.write_text("{}")
+
+        with patch(
+            "sys.argv",
+            ["create_kanji_decks.py", "-i", str(input_file), "-o", str(output_dir)],
+        ):
+            main()
+
+        # Check that create_anki_csv was called without example_words_map
+        call_args = mock_create_csv.call_args
+        assert call_args[0][3] is None  # example_words_map should be None
+
+    @patch("create_kanji_decks.load_kanjidic")
+    def test_main_missing_jmdict_file(
+        self, mock_load_kanjidic, tmp_path, mock_kanjidic_data, capsys
+    ):
+        """Test main continues when jmdict file not found"""
+        mock_load_kanjidic.return_value = mock_kanjidic_data
+
+        output_dir = tmp_path / "output"
+        input_file = tmp_path / "kanjidic.json"
+        jmdict_file = tmp_path / "nonexistent_jmdict.json"
+        input_file.write_text("{}")
+
+        with patch(
+            "sys.argv",
+            [
+                "create_kanji_decks.py",
+                "-i",
+                str(input_file),
+                "--jmdict",
+                str(jmdict_file),
+                "-o",
+                str(output_dir),
+            ],
+        ):
+            main()
+
+        # Should print warning but continue
+        captured = capsys.readouterr()
+        assert "Warning" in captured.err or "JMdict file not found" in captured.err

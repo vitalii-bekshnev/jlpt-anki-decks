@@ -5,6 +5,7 @@ Generate Anki flashcard decks for JLPT kanji from Kanjidic2 JSON
 Usage:
     python create_kanji_decks.py --help
     python create_kanji_decks.py --input path/to/kanjidic.json -o my_decks/
+    python create_kanji_decks.py --jmdict path/to/jmdict.json  # Include word examples
 """
 
 import argparse
@@ -17,6 +18,8 @@ from typing import Dict, List, Optional, Tuple
 from jmdict_utils import (
     build_kanji_frequency_map,
     calculate_frequency_tiers,
+    load_json,
+    process_word,
 )
 
 
@@ -149,7 +152,28 @@ def process_character(char: Dict) -> Optional[Dict]:
     }
 
 
-def format_back_field(char: Dict) -> str:
+def find_example_words(
+    kanji: str, words_data: List[Dict], tags: Dict[str, str], max_examples: int = 3
+) -> List[Dict]:
+    """Find example words containing this kanji"""
+    examples = []
+
+    for word in words_data:
+        kanji_forms = word.get("kanji", [])
+        for k in kanji_forms:
+            text = k.get("text", "")
+            if kanji in text:
+                result = process_word(word, tags, include_examples=False)
+                if result and result.get("word"):
+                    examples.append(result)
+                    if len(examples) >= max_examples:
+                        return examples
+                break
+
+    return examples
+
+
+def format_back_field(char: Dict, example_words: Optional[List[Dict]] = None) -> str:
     """Create formatted back field with all kanji information"""
     parts = []
 
@@ -187,16 +211,39 @@ def format_back_field(char: Dict) -> str:
             rtk_parts.append(f"RTK6: #{char['heisig6_rtk']}")
         parts.append(f"<b>Heisig:</b> {' | '.join(rtk_parts)}")
 
+    # Example words
+    if example_words:
+        word_parts = ["<b>Example Words:</b>"]
+        for i, word in enumerate(example_words, 1):
+            word_line = f"{i}. {word['word']}"
+            if word.get("readings"):
+                word_line += f" ({word['readings']})"
+            # Truncate long senses
+            senses = word.get("senses", "")
+            if len(senses) > 100:
+                senses = senses[:100] + "..."
+            word_line += f" - {senses}"
+            word_parts.append(word_line)
+        parts.append("<br>".join(word_parts))
+
     return "<br><br>".join(parts)
 
 
-def create_anki_csv(characters: List[Dict], output_path: Path, jlpt_tier: str) -> None:
+def create_anki_csv(
+    characters: List[Dict],
+    output_path: Path,
+    jlpt_tier: str,
+    example_words_map: Optional[Dict[str, List[Dict]]] = None,
+) -> None:
     """Create Anki-compatible CSV file"""
     fieldnames = ["kanji", "back", "tags"]
 
     output_rows = []
     for char in characters:
-        back = format_back_field(char)
+        example_words = (
+            example_words_map.get(char["kanji"], []) if example_words_map else None
+        )
+        back = format_back_field(char, example_words)
 
         # Tags
         tags_list = [jlpt_tier]
@@ -226,6 +273,7 @@ Examples:
   %(prog)s                           # Use default input file
   %(prog)s -i path/to/kanjidic.json  # Custom input file
   %(prog)s -o my_decks/              # Custom output directory
+  %(prog)s --jmdict path/to/jmdict.json  # Include word examples
         """,
     )
 
@@ -235,6 +283,20 @@ Examples:
         type=Path,
         default=Path("kanjidic2-en-3.6.2.json"),
         help="Path to Kanjidic2 JSON file (default: kanjidic2-en-3.6.2.json)",
+    )
+
+    parser.add_argument(
+        "--jmdict",
+        type=Path,
+        default=None,
+        help="Path to JMdict JSON file for word examples (optional)",
+    )
+
+    parser.add_argument(
+        "--max-examples",
+        type=int,
+        default=3,
+        help="Maximum number of example words per kanji (default: 3)",
     )
 
     parser.add_argument(
@@ -253,6 +315,8 @@ def main():
 
     input_file = args.input
     output_dir = args.output_dir
+    jmdict_file = args.jmdict
+    max_examples = args.max_examples
 
     if not input_file.exists():
         print(f"Error: {input_file} not found!", file=sys.stderr)
@@ -326,6 +390,33 @@ def main():
     if skipped > 0:
         print(f"Skipped {skipped} entries (no JLPT level or invalid data)")
 
+    # Load JMdict for word examples if provided
+    example_words_map: Optional[Dict[str, List[Dict]]] = None
+    if jmdict_file:
+        if not jmdict_file.exists():
+            print(f"Warning: JMdict file not found: {jmdict_file}", file=sys.stderr)
+            print("Continuing without word examples...", file=sys.stderr)
+        else:
+            print(
+                f"\nLoading JMdict for word examples (up to {max_examples} per kanji)..."
+            )
+            jmdict_data = load_json(jmdict_file)
+            tags = jmdict_data.get("tags", {})
+            words = jmdict_data.get("words", [])
+            print(f"Loaded {len(words)} words")
+
+            # Build example words map for all kanji
+            print("Finding example words for each kanji...")
+            example_words_map = {}
+            for level in ["N5", "N4", "N3", "N2", "N1"]:
+                for char in jlpt_groups[level]:
+                    kanji = char["kanji"]
+                    examples = find_example_words(
+                        kanji, words, tags, max_examples=max_examples
+                    )
+                    example_words_map[kanji] = examples
+            print(f"Found examples for {len(example_words_map)} kanji")
+
     # Create output directory
     output_dir.mkdir(exist_ok=True)
 
@@ -335,7 +426,7 @@ def main():
         characters = jlpt_groups[tier]
         if characters:
             output_path = output_dir / f"jlpt_{tier}_kanji.csv"
-            create_anki_csv(characters, output_path, tier)
+            create_anki_csv(characters, output_path, tier, example_words_map)
 
     # Summary
     print("\n" + "=" * 60)
