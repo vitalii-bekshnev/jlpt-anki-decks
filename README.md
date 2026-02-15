@@ -2,18 +2,9 @@
 
 Free Anki flashcard decks for JLPT (Japanese Language Proficiency Test) study. Includes kanji and vocabulary for all levels (N5-N1).
 
-## Examples
+## Example
 
-<table>
-  <tr>
-    <td align="center"><b>Kanji Card</b></td>
-    <td align="center"><b>Vocabulary Card</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/kanji_example.png" width="400"/></td>
-    <td><img src="docs/vocab_example.png" width="400"/></td>
-  </tr>
-</table>
+<img src="docs/kanji_example.png" width="500"/>
 
 ## 📥 Quick Start
 
